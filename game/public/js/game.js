@@ -9,8 +9,8 @@ var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS,
 function preload () {
     game.load.image('earth', 'assets/tiles2.jpg')
     game.load.image('bullet', 'assets/bullet111.png')
-    game.load.spritesheet('dude', 'assets/barata64.png', 64, 64)
-    game.load.spritesheet('enemy', 'assets/barata64.png', 64, 64)
+    game.load.spritesheet('dude', 'assets/barata_pp.png', 64, 64)
+    game.load.spritesheet('enemy', 'assets/barata_pp.png', 64, 64)
 }
 
 var socket // Socket connection
