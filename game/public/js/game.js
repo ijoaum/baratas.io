@@ -237,7 +237,7 @@ function update () {
 
     //if (player.x == cursors.left.x) {
     if (game.physics.arcade.distanceToPointer(player) >= 50) {
-        currentSpeed = 100
+        currentSpeed = 500
 
     } else {
         currentSpeed = 0
