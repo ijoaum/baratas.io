@@ -21,6 +21,8 @@ var player
 var enemies
 var bullets
 
+var sessionId
+
 var fireRate = 500;
 var nextFire = 0;
 
@@ -86,25 +88,24 @@ function create () {
 
 
 var setEventHandlers = function () {
-    // Socket connection successful
+
     socket.on('connect', onSocketConnected)
-
-    // Socket disconnection
     socket.on('disconnect', onSocketDisconnect)
-
-    // New player message received
     socket.on('new player', onNewPlayer)
-
-    // Player move message received
     socket.on('move player', onMovePlayer)
-
-    // Player removed message received
     socket.on('remove player', onRemovePlayer)
+
+    socket.on('kill enemy', onKillEnemy)
+    socket.on('kill player', onKillPlayer)
+
 }
 
 // Socket connected
 function onSocketConnected () {
     console.log('Connected to socket server')
+
+    player.name = socket.io.engine.id
+    console.log(socket.io.engine.id)
 
     // Reset enemies on reconnect
     enemies.forEach(function (enemy) {
@@ -267,11 +268,25 @@ function collisionHandler (enemy,bullet) {
 
 }
 
+function onKillPlayer(data) {
+    player.kill()
+}
+
+function onKillEnemy(data) {
+    enemies.forEach(function (enemy) {
+        console.log(data.id)
+        console.log(enemy)
+        if(enemy.id === data.id ) {
+            enemy.player.kill()
+        }
+    })
+}
+
 function enemyHit(enemy){
     enemy.health = enemy.health - 0.4
-    console.log(enemy.health);
-    if(enemy.health <= 0){
-        console.log(enemy.health);
-        enemy.kill();
-    }
+    socket.emit('hit player', { id:enemy.name })
+    // if(enemy.health <= 0){
+    //     console.log(enemy.health);
+    //     enemy.kill();
+    // }
 }

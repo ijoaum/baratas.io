@@ -17,6 +17,8 @@ var port = process.env.PORT || 8080
  ************************************************ */
 var socket	// Socket controller
 var players	// Array of connected players
+var teambugPlayers // Aray of bug team players
+var teamhumanPlayers  // Array of human team players
 
 /* ************************************************
  ** GAME INITIALISATION
@@ -34,13 +36,11 @@ var server = http.createServer(
 })
 
 function init () {
-    // Create an empty array to store players
+
     players = []
-
-    // Attach Socket.IO to server
+    teambugPlayers = []
+    teamhumanPlayers = []
     socket = io.listen(server)
-
-    // Start listening for events
     setEventHandlers()
 }
 
@@ -56,14 +56,10 @@ var setEventHandlers = function () {
 function onSocketConnection (client) {
     util.log('New player has connected: ' + client.id)
 
-    // Listen for client disconnected
     client.on('disconnect', onClientDisconnect)
-
-    // Listen for new player message
     client.on('new player', onNewPlayer)
-
-    // Listen for move player message
     client.on('move player', onMovePlayer)
+    client.on('hit player', onHitPlayer)
 }
 
 // Socket client has disconnected
@@ -101,8 +97,23 @@ function onNewPlayer (data) {
         this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), angle: existingPlayer.getAngle()})
     }
 
+    assignTeam(newPlayer)
+
     // Add new player to the players array
     players.push(newPlayer)
+}
+
+function assignTeam(player){
+    bug_count = teambugPlayers.length
+    human_count = teamhumanPlayers.length
+
+    if(bug_count < human_count) {
+        teambugPlayers.push(player);
+        player.init("bug");
+    } else {
+        teamhumanPlayers.push(player);
+        player.init("human");
+    }
 }
 
 // Player has moved
@@ -123,6 +134,27 @@ function onMovePlayer (data) {
 
     // Broadcast updated position to connected socket clients
     this.broadcast.emit('move player', {id: movePlayer.id, x: movePlayer.getX(), y: movePlayer.getY(), angle: movePlayer.getAngle()})
+}
+
+// Player has hit
+function onHitPlayer (data) {
+    var player = playerById(data.id)
+
+    if (!player) {
+        util.log('Player not found: ' + data.id)
+        return
+    }
+
+    player.health = player.health-20;
+    console.log("id: "+player.health)
+    if(player.health <= 0) {
+        console.log("Player dead: "+player.id)
+        this.emit('kill enemy', {id: player.id})
+        //this.clients[player.id].send('player kill')
+    }
+
+    this.broadcast.emit('player health sync', {id: player.id, health:player.health})
+
 }
 
 /* ************************************************

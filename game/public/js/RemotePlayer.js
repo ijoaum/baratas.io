@@ -11,6 +11,8 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
   this.alive = true
 
   this.player = game.add.sprite(x, y, 'enemy')
+  this.player.id = index
+  this.id = index
 
   this.player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true)
   this.player.animations.add('stop', [3], 20, true)

@@ -7,6 +7,14 @@ var Player = function (startX, startY, startAngle) {
   var angle = startAngle
   var id
 
+  var health
+  var team
+  var level
+  var xp
+
+  var name
+  var skin
+
   // Getters and setters
   var getX = function () {
     return x
@@ -32,6 +40,13 @@ var Player = function (startX, startY, startAngle) {
     angle = newAngle
   }
 
+  var init = function (player_team) {
+    this.health = 100
+    this.team = player_team
+    this.level = 1
+    this.xp = 0
+  }
+
   // Define which variables and methods can be accessed
   return {
     getX: getX,
@@ -40,6 +55,7 @@ var Player = function (startX, startY, startAngle) {
     setX: setX,
     setY: setY,
     setAngle: setAngle,
+    init: init,
     id: id
   }
 }
