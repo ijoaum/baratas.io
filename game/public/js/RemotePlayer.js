@@ -1,6 +1,6 @@
 /* global game */
 
-var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
+var RemotePlayer = function (index, game, player, startX, startY, startAngle, username) {
   var x = startX
   var y = startY
   var angle = startAngle
@@ -28,6 +28,13 @@ var RemotePlayer = function (index, game, player, startX, startY, startAngle) {
 
   //this.physicsBodyType = Phaser.Physics.ARCADE;
 
+  var style = { font: "12px Arial", fill: "#000", wordWrap: true, wordWrapWidth: this.player.width, align: "center" };
+  this.playername = game.add.text(0, 0, username, style);
+  this.playername.anchor.set(0.5);
+
+  this.playername.x = Math.floor(this.player.x);
+  this.playername.y = Math.floor(this.player.y - 40);
+
   this.lastPosition = { x: x, y: y, angle: angle }
 }
 
@@ -42,6 +49,11 @@ RemotePlayer.prototype.update = function () {
   this.lastPosition.x = this.player.x
   this.lastPosition.y = this.player.y
   this.lastPosition.angle = this.player.angle
+
+  this.playername.x = Math.floor(this.player.x + this.player.width / 2);
+  this.playername.y = Math.floor(this.player.y - 10);
+
+
 }
 
 window.RemotePlayer = RemotePlayer

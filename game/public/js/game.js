@@ -3,7 +3,6 @@
  */
 /* global Phaser RemotePlayer io */
 
-var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS, 'gameArea', { preload: preload, create: create, update: update, render: render })
 
 
 function preload () {
@@ -13,10 +12,13 @@ function preload () {
     game.load.spritesheet('enemy', 'assets/barata_pp.png', 64, 64)
 }
 
+var game;
+
 var socket // Socket connection
 
 var land
 
+var playerUsername
 var player
 var enemies
 var bullets
@@ -28,6 +30,20 @@ var nextFire = 0;
 
 var currentSpeed = 0
 var cursors
+
+var app = angular.module("app", []).controller("LoginController", function($scope){;
+    $scope.joinGame = function () {
+        if(!$scope.username) {
+            return;
+        }
+
+        playerUsername = $scope.username;
+
+        $scope.gameRunning = true;
+        game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.CANVAS, 'gameArea', { preload: preload, create: create, update: update, render: render })
+    };
+});
+
 
 function create () {
     socket = io.connect()
@@ -110,11 +126,12 @@ function onSocketConnected () {
     // Reset enemies on reconnect
     enemies.forEach(function (enemy) {
         enemy.player.kill()
+        enemy.playername.kill()
     })
     enemies = []
 
     // Send local player data to the game server
-    socket.emit('new player', { x: player.x, y: player.y, angle: player.angle })
+    socket.emit('new player', { x: player.x, y: player.y, angle: player.angle, username:playerUsername })
 }
 
 // Socket disconnected
@@ -134,7 +151,7 @@ function onNewPlayer (data) {
     }
 
     // Add new player to the remote players array
-    enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.angle))
+    enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.angle, data.username))
 }
 
 // Move player
@@ -151,6 +168,9 @@ function onMovePlayer (data) {
     movePlayer.player.x = data.x
     movePlayer.player.y = data.y
     movePlayer.player.angle = data.angle
+
+    movePlayer.playername.x = Math.floor(movePlayer.player.x);
+    movePlayer.playername.y = Math.floor(movePlayer.player.y - 40);
 }
 
 // Remove player
@@ -164,6 +184,7 @@ function onRemovePlayer (data) {
     }
 
     removePlayer.player.kill()
+    removePlayer.playername.kill()
 
     // Remove player from array
     enemies.splice(enemies.indexOf(removePlayer), 1)
@@ -237,7 +258,7 @@ function update () {
 
     //if (player.x == cursors.left.x) {
     if (game.physics.arcade.distanceToPointer(player) >= 50) {
-        currentSpeed = 500
+        currentSpeed = 200
 
     } else {
         currentSpeed = 0
@@ -278,6 +299,7 @@ function onKillEnemy(data) {
         console.log(enemy)
         if(enemy.id === data.id ) {
             enemy.player.kill()
+            enemy.playername.kill()
         }
     })
 }

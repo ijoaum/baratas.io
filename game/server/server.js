@@ -88,13 +88,13 @@ function onNewPlayer (data) {
     newPlayer.id = this.id
 
     // Broadcast new player to connected socket clients
-    this.broadcast.emit('new player', {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), angle: newPlayer.getAngle()})
+    this.broadcast.emit('new player', {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), angle: newPlayer.getAngle(), username:data.username})
 
     // Send existing players to the new player
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
         existingPlayer = players[i]
-        this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), angle: existingPlayer.getAngle()})
+        this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), angle: existingPlayer.getAngle(), username:data.username})
     }
 
     assignTeam(newPlayer)
