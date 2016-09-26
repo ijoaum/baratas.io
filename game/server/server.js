@@ -84,8 +84,9 @@ function onClientDisconnect () {
 // New player has joined
 function onNewPlayer (data) {
     // Create a new player
-    var newPlayer = new Player(data.x, data.y, data.angle)
+    var newPlayer = new Player(data.x, data.y, data.angle, data.username)
     newPlayer.id = this.id
+    newPlayer.name = data.username;
 
     // Broadcast new player to connected socket clients
     this.broadcast.emit('new player', {id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), angle: newPlayer.getAngle(), username:data.username})
@@ -94,7 +95,8 @@ function onNewPlayer (data) {
     var i, existingPlayer
     for (i = 0; i < players.length; i++) {
         existingPlayer = players[i]
-        this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), angle: existingPlayer.getAngle(), username:data.username})
+        console.log(existingPlayer);
+        this.emit('new player', {id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY(), angle: existingPlayer.getAngle(), username:existingPlayer.name})
     }
 
     assignTeam(newPlayer)

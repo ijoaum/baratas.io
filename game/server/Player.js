@@ -1,7 +1,7 @@
 /* ************************************************
 ** GAME PLAYER CLASS
 ************************************************ */
-var Player = function (startX, startY, startAngle) {
+var Player = function (startX, startY, startAngle, startName) {
   var x = startX
   var y = startY
   var angle = startAngle
@@ -12,7 +12,7 @@ var Player = function (startX, startY, startAngle) {
   var level
   var xp
 
-  var name
+  var name = startName
   var skin
 
   // Getters and setters
@@ -40,6 +40,15 @@ var Player = function (startX, startY, startAngle) {
     angle = newAngle
   }
 
+  var getName = function () {
+    return name
+  }
+
+  var setName = function (newName) {
+    name = newName
+  }
+
+
   var init = function (player_team) {
     this.health = 100
     this.team = player_team
@@ -56,6 +65,8 @@ var Player = function (startX, startY, startAngle) {
     setY: setY,
     setAngle: setAngle,
     init: init,
+    getName: getName,
+    setName: setName,
     id: id
   }
 }
