@@ -8,8 +8,8 @@
 function preload () {
     game.load.image('earth', 'assets/tiles2.jpg')
     game.load.image('bullet', 'assets/bullet111.png')
-    game.load.spritesheet('dude', 'assets/barata_pp.png', 64, 64)
     game.load.spritesheet('enemy', 'assets/barata_pp.png', 64, 64)
+    game.load.spritesheet('dude', 'assets/barata_pp.png', 64, 64)
 }
 
 var game;
@@ -28,8 +28,9 @@ var sessionId
 var fireRate = 500;
 var nextFire = 0;
 
-var currentSpeed = 0
 var cursors
+
+var gameObjects = [];
 
 var app = angular.module("app", []).controller("LoginController", function($scope){;
     $scope.joinGame = function () {
@@ -44,25 +45,22 @@ var app = angular.module("app", []).controller("LoginController", function($scop
     };
 });
 
+function addGameObject(gameObject){
+    gameObjects.push(gameObject);
+}
 
 function create () {
     socket = io.connect()
 
     // Resize our game world to be a 2000 x 2000 square
-    game.world.setBounds(-500, -500, 1000, 1000)
+    game.world.setBounds(-2500, -2500, 5000, 5000)
 
     // Our tiled scrolling background
     land = game.add.tileSprite(0, 0, window.innerWidth, window.innerHeight, 'earth')
     land.fixedToCamera = true
 
-    // The base of our player
-    var startX = Math.round(Math.random() * (1000) - 500)
-    var startY = Math.round(Math.random() * (1000) - 500)
-    player = game.add.sprite(startX, startY, 'dude')
-    player.anchor.setTo(0.5, 0.5)
-    player.animations.add('move', [0, 1, 2, 3, 4, 5, 6, 7], 20, true)
-    player.animations.add('stop', [3], 20, true)
-
+    player = new Player(game);
+    addGameObject(player);
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -74,22 +72,11 @@ function create () {
     bullets.setAll('checkWorldBounds', true);
     bullets.setAll('outOfBoundsKill', true);
 
-    // This will force it to decelerate and limit its speed
-    // player.body.drag.setTo(200, 200)
-    game.physics.enable(player, Phaser.Physics.ARCADE);
-    player.body.maxVelocity.setTo(400, 400)
-    player.body.collideWorldBounds = true
 
     // Create some baddies to waste :)
     enemies = []
 
-    player.bringToTop()
-
-    game.camera.follow(player)
-    game.camera.deadzone = new Phaser.Rectangle(150, 150, 500, 300)
     game.camera.focusOnXY(0, 0)
-
-    cursors = game.input.keyboard.createCursorKeys()
 
     // Start listening for events
 
@@ -120,8 +107,8 @@ var setEventHandlers = function () {
 function onSocketConnected () {
     console.log('Connected to socket server')
 
-    player.name = socket.io.engine.id
-    console.log(socket.io.engine.id)
+    // player.name = socket.io.engine.id
+    // console.log(socket.io.engine.id)
 
     // Reset enemies on reconnect
     enemies.forEach(function (enemy) {
@@ -131,7 +118,7 @@ function onSocketConnected () {
     enemies = []
 
     // Send local player data to the game server
-    socket.emit('new player', { x: player.x, y: player.y, angle: player.angle, username:playerUsername })
+    socket.emit('new player', { x: player.player.x, y: player.player.y, angle: player.player.angle, username:playerUsername })
 }
 
 // Socket disconnected
@@ -151,7 +138,7 @@ function onNewPlayer (data) {
     }
 
     // Add new player to the remote players array
-    enemies.push(new RemotePlayer(data.id, game, player, data.x, data.y, data.angle, data.username))
+    enemies.push(new RemotePlayer(data.id, game, player.player, data.x, data.y, data.angle, data.username))
 }
 
 // Move player
@@ -198,7 +185,7 @@ function fire() {
 
         var bullet = bullets.getFirstDead();
 
-        bullet.reset(player.x - 8, player.y - 8);
+        bullet.reset(player.player.x - 8, player.player.y - 8);
 
         game.physics.arcade.moveToPointer(bullet, 400);
     }
@@ -207,65 +194,20 @@ function fire() {
 
 
 function update () {
-    // for (var i = 0; i < enemies.length; i++) {
-    //   if (enemies[i].alive) {
-    //     enemies[i].update()
-    //     game.physics.arcade.collide(player, enemies[i].player)
-    //
-    //   }
-    // }
-
-
-
-    // if (cursors.left.isDown) {
-    //   player.angle -= 4
-    // } else if (cursors.right.isDown) {
-    //   player.angle += 4
-    // }
-
-    // if (cursors.up.isDown) {
-    //   // The speed we'll travel at
-    //   currentSpeed = 300
-    // } else {
-    //   if (currentSpeed > 0) {
-    //     currentSpeed -= 4
-    //   }
-    // }
-
-    game.physics.arcade.velocityFromRotation(player.rotation, currentSpeed, player.body.velocity)
 
     enemies.forEach(function (enemy) {
         game.physics.arcade.overlap(bullets, enemy.player, collisionHandler, null, this);
     })
 
+    gameObjects.forEach(function(object){
+        object.update();
+    })
 
-    if (currentSpeed > 0) {
-        player.animations.play('move')
-    } else {
-        player.animations.play('stop')
-    }
+    land.tilePosition.x = -player.player.x
+    land.tilePosition.y = -player.player.y
 
-    player.rotation = game.physics.arcade.angleToPointer(player)
+    //game.physics.arcade.velocityFromRotation(player.player.rotation, 300, player.player.body.velocity)
 
-    if (game.input.activePointer.isDown)
-    {
-        fire();
-    }
-
-
-    land.tilePosition.x = -player.x
-    land.tilePosition.y = -player.y
-
-    //if (player.x == cursors.left.x) {
-    if (game.physics.arcade.distanceToPointer(player) >= 50) {
-        currentSpeed = 200
-
-    } else {
-        currentSpeed = 0
-    }
-    //}
-
-    socket.emit('move player', { x: player.x, y: player.y, angle: player.angle })
 }
 
 function render () {
@@ -286,11 +228,14 @@ function playerById (id) {
 function collisionHandler (enemy,bullet) {
     bullet.kill();
     enemyHit(enemy);
-
 }
 
 function onKillPlayer(data) {
     player.kill()
+}
+
+function dieAndRespawn() {
+
 }
 
 function onKillEnemy(data) {
