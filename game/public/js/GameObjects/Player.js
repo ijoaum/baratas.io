@@ -61,5 +61,4 @@ Player.prototype.update = function () {
 
     console.log(this.player.x);
     console.log(this.player.y);
-    //socket.emit('move player', { x: this.player.x, y: this.player.y, angle: this.player.angle })
 }

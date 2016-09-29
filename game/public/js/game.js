@@ -206,6 +206,8 @@ function update () {
     land.tilePosition.x = -player.player.x
     land.tilePosition.y = -player.player.y
 
+    socket.emit('move player', { x: player.player.x, y: player.player.y, angle: player.player.angle })
+
     //game.physics.arcade.velocityFromRotation(player.player.rotation, 300, player.player.body.velocity)
 
 }
